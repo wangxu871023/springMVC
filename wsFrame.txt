@@ -1,0 +1,68 @@
+主表从表自动生成
+
+    流程管理——系统管理————工作流审批管理    conf————app.properties配置信息
+    给字段添加注释  方便合作开发  代码说明干啥的
+    开发项目写文档
+    开发前数据库提前备份
+
+    首先打开navicate 连接localhost 端口3307 用户root 密码sa123
+
+    创建表名字随便  比如bf_a  (id, name ) bf_b (id, name, aid)  保存
+
+    登录到wsframe  流程管理————自定义表————设置外部表 (查找)  选择————下一步
+可以修改字段注释    主表   保存
+                设置外部表——————搜索————选择————点从表————点击已生成的主表——————选择个外键字段  保存
+
+        自定义表单————添加————标题、别名，描述随意———————表选择————下一步————主表模型(单列)————从表模型(单列)————下一步   保存    现在这个表单是未发布状态  点击发布
+
+
+        生成配置
+            系统管理——————最下面生成配置——————选中新建的表单——————全选模版取消前3个——————填模块名称bf , 包名   生成   下载   解压到桌面
+
+
+            复制com/appsystem下  复制到D:\wsframe\workspace\oa\src\com\appsystem下  同样
+            复制WEB-INF/view/appsystem下   复制到D:\wsframe\workspace\oa\WebContent\WEB-INF\view\appsystem
+
+            项目右键refresh
+
+            添加功能菜单
+                系统管理——————资源管理————在适合的节点右键——————添加子节点(名称，描述  地址要设置为对应模块的/appsystem/bf/aa/bfA/list.ws )
+                保存
+
+             clean 项目
+            重启tomcat
+
+
+
+            解决修改内容插入过多数据问题
+
+
+public void addSubList(MdtAa mdtAa) throws Exception{
+
+        List<MdtBb> mdtBbList=mdtAa.getMdtBbList();
+        if(BeanUtils.isNotEmpty(mdtBbList)){
+            for(MdtBb mdtBb:mdtBbList){
+                mdtBb.setAid(mdtAa.getId());
+                Long id=UniqueIdUtil.genId();
+                mdtBb.setId(id);
+                mdtBbDao.add(mdtBb);
+            }
+        }
+    }
+
+主要是修改的时候把原来的数据当成新数据一起插入了集合，导致插入过多  所以需要判断对象的id是不是为0来判断是插入还是修改
+
+
+解决办法就是复制老师给的
+    crud教程源码\src\ta\service下的addSubList  替换For里面的代码
+
+里面的对象很乱  要仔细对应修改  不要改错楼
+
+然后就是webcontent
+
+bfaEdit.jsp
+
+修改下面的代码
+    <c:forEach items="${bfBList}" var="bfB" varStatus="status">
+
+
